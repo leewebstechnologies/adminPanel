@@ -9,6 +9,12 @@ function validate($inputData)
   return trim($validatedData);
 }
 
+function logoutSession() {
+  unset($_SESSION['auth']);
+  unset($_SESSION['loggedInUserRole']);
+  unset($_SESSION['loggedInUser']);
+}
+
 
 function redirect($url, $status)
 {
@@ -99,4 +105,12 @@ function deleteQuery($tableName, $id)
   $query = "DELETE FROM $table WHERE id='$id' LIMIT 1";
   $result = mysqli_query($conn, $query);
   return $result;
+}
+
+function webSetting($columnName) {
+  $setting = getById('settings', 1);
+  if ($setting['status'] == 200) {
+    return $setting['data'][$columnName];
+    # code...
+  }
 }

@@ -1,5 +1,6 @@
 <?php
 require '../config/functions.php';
+include("authentication.php")
 
 ?>
 
