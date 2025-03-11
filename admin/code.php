@@ -100,7 +100,6 @@ if (isset($_POST['saveSetting'])) {
     WHERE id='$settingId'
     ";
     $result = mysqli_query($conn, $query);
-
   }
 
   if ($result) {
@@ -109,3 +108,193 @@ if (isset($_POST['saveSetting'])) {
     redirect("settings.php", "Somethings went wrong!");
   }
 }
+
+
+
+if (isset($_POST['saveSocialMedia'])) {
+  $name = validate($_POST['name']);
+  $url = validate($_POST['url']);
+  $status = validate($_POST['status']) == true ? 1 : 0;
+
+  if ($name != '' || $url != '') {
+    $query = "INSERT INTO social_media (name, url, status) 
+    VALUES ('$name', '$url', '$status')";
+    $result = mysqli_query($conn, $query);
+
+    if ($result) {
+      redirect('social-media.php', 'Social Media Added Successfully!');
+    } else {
+      redirect('social-media-create.php', 'Something Went Wrong!');
+    }
+  } else {
+    redirect('social-media-create.php', 'Please fill all the input fields!');
+  }
+}
+
+if (isset($_POST['updateSocialMedia'])) {
+  $name = validate($_POST['name']);
+  $url = validate($_POST['url']);
+  $status = validate($_POST['status']) == true ? 1 : 0;
+
+  $socialMediaId = validate($_POST['socialMediaId']);
+
+  if ($name != '' || $url != '') {
+    $query = "UPDATE social_media SET
+    name='$name',
+    url='$url', 
+    status='$status' 
+    WHERE id='$socialMediaId' 
+    LIMIT 1";
+    
+    $result = mysqli_query($conn, $query);
+
+    if ($result) {
+      redirect('social-media.php', 'Social Media Updated Successfully!');
+    } else {
+      redirect('social-media-edit.php?='.$socialMediaId, 'Something Went Wrong!');
+    }
+  } else {
+    redirect('social-media-edit.php?='.$socialMediaId, 'Please fill all the input fields!');
+  }
+}
+
+if (isset($_POST['saveService'])) {
+  $name = validate($_POST['name']);
+
+  $slug = str_replace(' ', '-', strtolower($name));
+
+
+  $small_description = validate($_POST['small_description']);
+  $long_description = validate($_POST['long_description']);
+
+  if ($_FILES['image']['size'] > 0) {
+    $image = $_FILES['image']['name'];
+
+    $imgFileTypes = strtolower(pathinfo($image, PATHINFO_EXTENSION));
+    if ($imgFileTypes != 'jpg' && $imgFileTypes != 'jpeg' && $imgFileTypes != 'png') {
+     redirect("services.php", "Sorry, JPG, JPEG and PNG only!");
+    } 
+  
+    $path = "../assets/uploads/services/";
+    $imgExt = pathinfo($image, PATHINFO_EXTENSION);
+    $filename = time().'.'.$imgExt;
+
+    $finalImage = 'assets/uploads/services/'.$filename;
+  } else {
+    $finalImage = NULL;
+  }
+  
+
+  $image = validate($_POST['image']);
+
+  $meta_title = validate($_POST['meta_title']);
+  $meta_description = validate($_POST['meta_description']);
+  $meta_keyword = validate($_POST['meta_keyword']);
+
+  $status = validate($_POST['status']) == true ? '1': '0';
+
+  $query = "INSERT INTO services (
+  name, 
+  slug,	
+  small_description, 
+  long_description,	
+  image,	
+  meta_title,	
+  meta_description,	
+  meta_keyword, 
+  status
+  ) 
+  VALUES (
+  '$name', 
+  '$slug',	
+  '$small_description', 
+  '$long_description',	
+  '$finalImage',	
+  '$meta_title',	
+  '$meta_description',	
+  '$meta_keyword', 
+  '$status'
+  )";
+
+  $result = mysqli_query($conn, $query);
+  if ($result) {
+    if ($_FILES['image']['size'] > 0) {
+       move_uploaded_file($_FILES['image']['tmp_name'], $path.$filename);
+    } 
+    redirect("services.php", "Services Added Successfully!");
+  } else {
+     redirect("services.php", "Something went wrong!");
+  }
+  
+}
+
+if (isset($_POST['updateService'])) {
+   $serviceId = validate($_POST['serviceId']);
+   $name = validate($_POST['name']);
+
+  $slug = str_replace(' ', '-', strtolower($name));
+
+
+  $small_description = validate($_POST['small_description']);
+  $long_description = validate($_POST['long_description']);
+
+  $service = getById('services', $serviceId);
+  
+
+  if ($_FILES['image']['size'] > 0) {
+    $image = $_FILES['image']['name'];
+
+    $imgFileTypes = strtolower(pathinfo($image, PATHINFO_EXTENSION));
+    if ($imgFileTypes != 'jpg' && $imgFileTypes != 'jpeg' && $imgFileTypes != 'png') {
+     redirect("services.php", "Sorry, JPG, JPEG and PNG only!");
+    } 
+  
+    $path = "../assets/uploads/services/";
+    
+    $deleteImage = "../".$service['data']['image'];
+    if (file_exists($deleteImage)) {
+      unlink($deleteImage);
+    }
+    $imgExt = pathinfo($image, PATHINFO_EXTENSION);
+    $filename = time().'.'.$imgExt;
+
+    $finalImage = 'assets/uploads/services/'.$filename;
+  } else {
+    $finalImage = $service['data']['image'];
+  }
+  
+
+  $image = validate($_POST['image']);
+
+  $meta_title = validate($_POST['meta_title']);
+  $meta_description = validate($_POST['meta_description']);
+  $meta_keyword = validate($_POST['meta_keyword']);
+
+  $status = validate($_POST['status']) == true ? '1': '0';
+
+  $query = "UPDATE services SET 
+  name='$name', 
+  slug='$slug',	
+  small_description='$small_description', 
+  long_description='$long_description',	
+  image='$finalImage',	
+  meta_title='$meta_title',	
+  meta_description='$meta_description',	
+  meta_keyword='$meta_keyword', 
+  status='$status'
+  WHERE id='$serviceId' ";
+  $result = mysqli_query($conn, $query);
+
+   if ($result) {
+    if ($_FILES['image']['size'] > 0) {
+       move_uploaded_file($_FILES['image']['tmp_name'], $path.$filename);
+    } 
+    redirect("services-edit.php?id=".$serviceId, "Services Updated Successfully!");
+  } else {
+     redirect("services-edit.php?id=".$serviceId, "Something went wrong!");
+  }
+  
+
+} 
+
+
